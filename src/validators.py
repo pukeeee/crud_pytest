@@ -5,6 +5,7 @@ import re
 class UserValidator(BaseModel):
     user_name: str
     email: str
+    password: str
     
     @field_validator("user_name")
     def validate_user_name(cls, value: str) -> str:
@@ -42,5 +43,38 @@ class UserValidator(BaseModel):
         
         if not re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", value):
             raise ValueError("Email must contain only Latin letters")
+        
+        if len(value) > 30:
+            raise ValueError("Email name must be less than 30 characters")
+        
+        return value
+    
+    @field_validator("password")
+    def validate_password(cls, value: str) -> str:
+        value = value.strip()
+        
+        if not value:
+            raise ValueError("Password cannot be empty")
+        
+        if " " in value:
+            raise ValueError("Password cannot contain spaces")
+        
+        if len(value) < 9:
+            raise ValueError("Password must be longer than 8 characters")
+        
+        if len(value) > 20:
+            raise ValueError("Password must be less than 20 characters")
+        
+        if not re.search(r"[A-Z]", value):
+            raise ValueError("Password must contain at least one uppercase letter")
+        
+        if not re.search(r"[a-z]", value):
+            raise ValueError("Password must contain at least one lowercase letter")
+        
+        if not re.search(r"[0-9]", value):
+            raise ValueError("Password must contain at least one digit")
+        
+        if not re.search(r"[!@#$%^&*()_+=/-]", value):
+            raise ValueError("Password must contain at least one special character (!@#$%^&*()_+=-/)")
         
         return value
