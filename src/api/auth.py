@@ -5,7 +5,7 @@ SECRET_KEY = "dotenv"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-def generate_token(user_id: str) -> str:
+def generate_token(user_id: int) -> str:
     """Создание JWT-токена"""
     expire = datetime.now(timezone.utc) + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
