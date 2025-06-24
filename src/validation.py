@@ -6,7 +6,8 @@ class UserValidation(BaseModel):
     user_name: str
     email: str
     password: str
-    
+
+
     @field_validator("user_name")
     def validate_user_name(cls, value: str) -> str:
         value = value.strip()
@@ -27,7 +28,8 @@ class UserValidation(BaseModel):
             raise ValueError("User name can only contain letters")
         
         return value
-    
+
+
     @field_validator("email")
     def validate_email(cls, value: str) -> str:
         value = value.strip()
@@ -48,7 +50,8 @@ class UserValidation(BaseModel):
             raise ValueError("Email name must be less than 30 characters")
         
         return value
-    
+
+
     @field_validator("password")
     def validate_password(cls, value: str) -> str:
         value = value.strip()

@@ -1,4 +1,4 @@
-from src.models import User
+from src.db.models import User
 from sqlalchemy.orm import Session
 
 
