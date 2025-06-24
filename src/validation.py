@@ -2,7 +2,7 @@ from pydantic import BaseModel, field_validator
 import re
 
 
-class UserValidator(BaseModel):
+class UserValidation(BaseModel):
     user_name: str
     email: str
     password: str

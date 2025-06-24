@@ -1,5 +1,5 @@
 import pytest
-from src.validators import UserValidator
+from validation import UserValidation
 from contextlib import nullcontext as not_raises
 from pydantic import ValidationError
 
@@ -22,7 +22,7 @@ from pydantic import ValidationError
 )
 def test_user_name_validation(user_name, exp):
     with exp:
-        UserValidator(user_name = user_name, email = "valid@mail.com", password = "ValidPassword1/")
+        UserValidation(user_name = user_name, email = "valid@mail.com", password = "ValidPassword1/")
 
 
 @pytest.mark.parametrize("email, exp",
@@ -44,7 +44,7 @@ def test_user_name_validation(user_name, exp):
 )
 def test_email_validation(email, exp):
     with exp:
-        UserValidator(user_name = "ValidName", email = email, password = "ValidPassword1/")
+        UserValidation(user_name = "ValidName", email = email, password = "ValidPassword1/")
 
 
 @pytest.mark.parametrize("password, exp", 
@@ -73,4 +73,4 @@ def test_email_validation(email, exp):
 )
 def test_password_validation(password, exp):
     with exp:
-        UserValidator(user_name = "ValidName", email = "valid@mail.com", password = password)
+        UserValidation(user_name = "ValidName", email = "valid@mail.com", password = password)
