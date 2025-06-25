@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from api.api_repository import UserRepository
 from src.validation import UserValidation
-from src.api.auth import generate_token
+from src.api.auth import generate_token, get_current_user
 
 app = FastAPI()
 
@@ -28,9 +28,13 @@ def create_user(user: UserValidation, repo: UserRepository = Depends(get_user_re
     }
 
 
-@app.get("/users/{user_id}")
-def get_user(user_id: str, repo: UserRepository = Depends(get_user_repository)):
-    user = repo.get_user(user_id)
+@app.get("/users/{id}")
+def get_user(id: int, current_user_id: int = Depends(get_current_user), repo: UserRepository = Depends(get_user_repository)):
+    if id != current_user_id:
+        raise HTTPException(status_code = 403, detail = "Forbidden")
+
+    user = repo.get_user(id)
     if not user:
         raise HTTPException(status_code = 404, detail = "User not found")
-    return user
+    
+    return {"user_name": user["user_name"], "email": user["email"]}
