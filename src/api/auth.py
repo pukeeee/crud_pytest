@@ -1,9 +1,13 @@
 from jose import JWTError, jwt, ExpiredSignatureError
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
+from fastapi import Header, HTTPException
+
 
 SECRET_KEY = "dotenv"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 def generate_token(user_id: int) -> str:
     """Создание JWT-токена"""
@@ -31,3 +35,19 @@ def verify_token(token: str) -> int:
 
     except (JWTError, ValueError):
         raise ValueError("Invalid token")
+
+
+def get_current_user(authorization: Annotated[str, Header()]) -> int:
+    """Извлекает user_id из токена в заголовке Authorization"""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code = 401, detail = "Invalid token format")
+    
+    token = authorization.split(" ")[1]
+    
+    try:
+        user_id = verify_token(token)
+        return user_id
+    except JWTError:
+        raise HTTPException(status_code = 401, detail = "Invalid token")
+    except ValueError:
+        raise HTTPException(status_code = 401, detail = "Invalid token payload")

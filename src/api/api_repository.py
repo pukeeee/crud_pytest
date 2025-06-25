@@ -4,3 +4,6 @@ class UserRepository:
 
     def get_user_by_email(self, email: str) -> dict:
         raise NotImplementedError
+    
+    def get_user_by_id(self, id: str) -> dict:
+        raise NotImplementedError

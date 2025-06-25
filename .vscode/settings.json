@@ -1,0 +1,15 @@
+{
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/.git": true,
+        "**/dist": true,
+        "**/*.log": true,
+        "**/__pycache__": true,
+    }
+}
