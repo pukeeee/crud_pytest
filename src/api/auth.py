@@ -1,4 +1,4 @@
-from jose import JWTError, jwt
+from jose import JWTError, jwt, ExpiredSignatureError
 from datetime import datetime, timedelta, timezone
 
 SECRET_KEY = "dotenv"
@@ -18,10 +18,16 @@ def generate_token(user_id: int) -> str:
 
 def verify_token(token: str) -> int:
     """Проверка JWT-токена и извлечение user_id"""
+    if not isinstance(token, str) or not token.strip():
+        raise ValueError("Invalid token format")
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
         return user_id
     
+    except ExpiredSignatureError:
+        raise ValueError("Token has expired")
+
     except (JWTError, ValueError):
         raise ValueError("Invalid token")
