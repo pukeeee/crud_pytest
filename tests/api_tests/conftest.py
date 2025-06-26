@@ -25,6 +25,7 @@ def new_user_data():
 
 @pytest.fixture
 def create_user(client, new_user_data):
+    """Создаёт пользователя и возвращает (response.json, client, mock_repo)"""
     test_client, mock_repo = client
 
     # Мокаем создание пользователя

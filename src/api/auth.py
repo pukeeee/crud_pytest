@@ -20,6 +20,7 @@ def generate_token(user_id: int) -> str:
     
     return token
 
+
 def verify_token(token: str) -> int:
     """Проверка JWT-токена и извлечение user_id"""
     if not isinstance(token, str) or not token.strip():
@@ -37,17 +38,15 @@ def verify_token(token: str) -> int:
         raise ValueError("Invalid token")
 
 
-def get_current_user(authorization: Annotated[str, Header()]) -> int:
+def get_current_user(authorization: Annotated[str | None, Header()] = None) -> int:
     """Извлекает user_id из токена в заголовке Authorization"""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code = 401, detail = "Invalid token format")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code = 401, detail = "Unauthorized")
     
     token = authorization.split(" ")[1]
     
     try:
         user_id = verify_token(token)
         return user_id
-    except JWTError:
+    except (JWTError, ValueError):
         raise HTTPException(status_code = 401, detail = "Invalid token")
-    except ValueError:
-        raise HTTPException(status_code = 401, detail = "Invalid token payload")
