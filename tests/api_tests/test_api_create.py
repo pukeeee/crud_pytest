@@ -9,7 +9,7 @@ def test_create_user_success(client, new_user_data):
 
     mock_repo.get_user_by_email.return_value = None
     mock_repo.create_user.return_value = {"id": 1, **new_user_data}
-    response = test_client.post("/users", json=new_user_data)
+    response = test_client.post("/users", json = new_user_data)
     data = response.json()
 
     assert response.status_code == 200

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
-from api.api_repository import UserRepository
-from src.validation import UserCreate
+from src.api.api_repository import UserRepository
+from src.validation import UserCreate, UserUpdate, PasswordUpdate
 from src.api.auth import generate_token, get_current_user
 
 app = FastAPI()
@@ -11,7 +11,10 @@ def get_user_repository():
 
 # Создание юзера
 @app.post("/users")
-def create_user(user: UserCreate, repo: UserRepository = Depends(get_user_repository)):
+def create_user(
+    user: UserCreate, 
+    repo: UserRepository = Depends(get_user_repository)
+):
     # Проверка на существующий email
     existing_email = repo.get_user_by_email(user.email)
     if existing_email:
@@ -29,11 +32,15 @@ def create_user(user: UserCreate, repo: UserRepository = Depends(get_user_reposi
 
 
 @app.get("/users/{id}")
-def get_user(id: int, current_user_id: int = Depends(get_current_user), repo: UserRepository = Depends(get_user_repository)):
+def get_user(
+    id: int, 
+    current_user_id: int = Depends(get_current_user), 
+    repo: UserRepository = Depends(get_user_repository)
+):
     if id != current_user_id:
         raise HTTPException(status_code = 403, detail = "Forbidden")
 
-    user = repo.get_user(id)
+    user = repo.get_user_by_id(id)
     if not user:
         raise HTTPException(status_code = 404, detail = "User not found")
     
@@ -41,16 +48,52 @@ def get_user(id: int, current_user_id: int = Depends(get_current_user), repo: Us
 
 
 @app.patch("/users/{id}")
-def edit_user(id: int, current_user_id: int = Depends(get_current_user), repo: UserRepository = Depends(get_user_repository)):
-    # Проверка авторизации
+def update_user(
+    id: int,
+    user: UserUpdate,
+    current_user_id: int = Depends(get_current_user),
+    repo: UserRepository = Depends(get_user_repository)
+):
     if id != current_user_id:
         raise HTTPException(status_code = 403, detail = "Forbidden")
-    
-    # Проверка существования пользователя
-    user = repo.get_user(id)
-    if not user:
+
+    existing_user = repo.get_user_by_id(id)
+    if not existing_user:
         raise HTTPException(status_code = 404, detail = "User not found")
-    
-    # Если ничего не передано для обновления
-    if not any(user.user_name, user.email, user.password):
+
+    update_data = user.model_dump(exclude_unset = True)
+    if not update_data:
         raise HTTPException(status_code = 400, detail = "No fields to update")
+
+    updated_fields = repo.update_user(id, update_data)
+    if not updated_fields:
+        raise HTTPException(status_code = 500, detail = "Failed to update user")
+
+    updated_fields.pop("password", None)
+
+    return {"message": "User updated", "user": updated_fields}
+
+
+@app.patch("/users/{id}/password")
+def update_password(
+    id: int,
+    data: PasswordUpdate,
+    current_user_id: int = Depends(get_current_user),
+    repo: UserRepository = Depends(get_user_repository)
+):
+    if id != current_user_id:
+        raise HTTPException(status_code = 403, detail = "Forbidden")
+
+    existing_user = repo.get_user_by_id(id)
+    if not existing_user:
+        raise HTTPException(status_code = 404, detail = "User not found")
+
+    update_data = data.password
+    if not update_data:
+        raise HTTPException(status_code = 400, detail = "No password provided")
+
+    updated_fields = repo.update_password(id, data.password)
+    if not updated_fields:
+        raise HTTPException(status_code = 500, detail = "Failed to update password")
+
+    return {"message": "Password updated successfully"}
