@@ -2,11 +2,15 @@ from jose import JWTError, jwt, ExpiredSignatureError
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from fastapi import Header, HTTPException
+from dotenv import load_dotenv
+import os
 
 
-SECRET_KEY = "dotenv"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
 def generate_token(user_id: int) -> str:
@@ -16,7 +20,7 @@ def generate_token(user_id: int) -> str:
         "sub": str(user_id),
         "exp": expire
     }
-    token = jwt.encode(payload, SECRET_KEY, algorithm = ALGORITHM)
+    token = jwt.encode(payload, os.getenv("SECRET_KEY"), algorithm = ALGORITHM)
     
     return token
 
