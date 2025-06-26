@@ -1,11 +1,12 @@
 from pydantic import BaseModel, field_validator
+from typing import Optional
 import re
 
 
 class UserValidation(BaseModel):
-    user_name: str
-    email: str
-    password: str
+    user_name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
 
 
     @field_validator("user_name")
@@ -81,3 +82,13 @@ class UserValidation(BaseModel):
             raise ValueError("Password must contain at least one special character (!@#$%^&*()_+=-/)")
         
         return value
+
+
+class UserCreate(UserValidation):
+    user_name: str
+    email: str
+    password: str
+
+
+class UserEdit(UserValidation):
+    pass
