@@ -1,5 +1,5 @@
 import pytest
-from validation import UserCreate
+from dto.user import UserCreate
 from contextlib import nullcontext as not_raises
 from pydantic import ValidationError
 

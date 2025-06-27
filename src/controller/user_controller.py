@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
-from src.api.api_repository import UserRepository
-from src.validation import UserCreate, UserUpdate, PasswordUpdate
-from src.api.auth import generate_token, get_current_user
+from src.component.user_repository import UserRepository
+from src.dto.user import UserCreate, UserUpdate, PasswordUpdate
+from src.auth.auth import generate_token, get_current_user
 
 app = FastAPI()
 

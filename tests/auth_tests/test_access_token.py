@@ -1,8 +1,7 @@
-from src.api.auth import generate_token, verify_token
+from src.auth.auth import generate_token, verify_token, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 import pytest
 from datetime import datetime, timezone, timedelta
 from jose import jwt
-from src.api.auth import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 def test_generate_access_token():
