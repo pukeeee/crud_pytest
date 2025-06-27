@@ -1,7 +1,6 @@
 import pytest
 
 
-
 @pytest.mark.parametrize("updated_fields", 
     [
         {"user_name": "NewName"},

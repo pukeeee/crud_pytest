@@ -13,3 +13,6 @@ class UserRepository:
     
     def update_password(self, id: int, password: str) -> dict:
         raise NotImplementedError
+    
+    def delete_user(self, id: int) -> bool:
+        raise NotImplementedError

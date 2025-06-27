@@ -97,3 +97,22 @@ def update_password(
         raise HTTPException(status_code = 500, detail = "Failed to update password")
 
     return {"message": "Password updated successfully"}
+
+
+@app.delete("/users/{id}")
+def delete_user(
+    id: int,
+    current_user_id: int = Depends(get_current_user),
+    repo: UserRepository = Depends(get_user_repository)
+):
+    if id != current_user_id:
+        raise HTTPException(status_code = 403, detail = "Forbidden")
+    
+    existing_user = repo.get_user_by_id(id)
+    if not existing_user:
+        raise HTTPException(status_code = 404, detail = "User not found")
+    
+    if not repo.delete_user(id):
+        raise HTTPException(status_code = 500, detail = "Failed to delete user")
+    
+    return {"message": "User deleted successfully"}

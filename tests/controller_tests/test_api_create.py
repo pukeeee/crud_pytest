@@ -1,6 +1,3 @@
-# from fastapi.testclient import TestClient
-# from src.api.routes import app, get_user_repository
-# from unittest.mock import MagicMock
 import pytest
 
 
