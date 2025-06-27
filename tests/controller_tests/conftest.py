@@ -15,6 +15,14 @@ def client():
 
 
 @pytest.fixture
+def updated_user_data():
+    return {
+        "user_name": "NewName", 
+        "email": "newemail@mail.com"
+    }
+
+
+@pytest.fixture
 def new_user_data():
     return {
         "user_name": "Name", 

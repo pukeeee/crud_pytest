@@ -60,6 +60,11 @@ def update_user(
     existing_user = repo.get_user_by_id(id)
     if not existing_user:
         raise HTTPException(status_code = 404, detail = "User not found")
+    
+    # Проверка на существующий email
+    existing_email = repo.get_user_by_email(user.email)
+    if existing_email:
+        raise HTTPException(status_code = 409, detail = "Email already exists")
 
     update_data = user.model_dump(exclude_unset = True)
     if not update_data:
