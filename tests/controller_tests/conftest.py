@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from src.api.routes import app, get_user_repository
+from controller.user_controller import app, get_user_repository
 from unittest.mock import MagicMock
 import pytest
 
@@ -12,6 +12,14 @@ def client():
     app.dependency_overrides[get_user_repository] = lambda: mock_repo
 
     return TestClient(app), mock_repo
+
+
+@pytest.fixture
+def updated_user_data():
+    return {
+        "user_name": "NewName", 
+        "email": "newemail@mail.com"
+    }
 
 
 @pytest.fixture

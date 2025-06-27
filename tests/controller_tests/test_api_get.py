@@ -1,9 +1,3 @@
-# from fastapi.testclient import TestClient
-# from src.api.routes import app, get_user_repository
-# from unittest.mock import MagicMock
-# import pytest
-
-
 def test_get_user_profile_success(create_user, new_user_data):
     data, test_client, mock_repo = create_user
 
@@ -40,7 +34,7 @@ def test_get_user_not_found(create_user):
 def test_get_user_forbidden(create_user):
     data, test_client, _ = create_user
 
-    other_id = 2
+    other_id = data["id"] + 1
     token = data["access_token"]
 
     headers = {"Authorization": f"Bearer {token}"}

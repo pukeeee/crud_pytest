@@ -1,7 +1,6 @@
 import pytest
 
 
-
 @pytest.mark.parametrize("updated_password", 
     [
         {"password": "NewPassword123/"}
@@ -18,7 +17,7 @@ def test_update_user_password(create_user, updated_password):
     response = test_client.patch(f"/users/{id}/password", headers = headers, json = updated_password)
     
     assert response.status_code == 200
-    assert response.json()["message"] == "Password updated successfully"
+    assert response.json() == {"message": "Password updated successfully"}
     assert "password" not in response.json()
     assert "access_token" not in response.json()
     mock_repo.update_password.assert_called_once_with(id, updated_password["password"])
