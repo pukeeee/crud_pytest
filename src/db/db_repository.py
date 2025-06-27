@@ -2,7 +2,7 @@ from src.db.models import User
 from sqlalchemy.orm import Session
 
 
-def add_user(db: Session, user_data: dict):
+def create_user(db: Session, user_data: dict):
     user = User(**user_data)
     db.add(user)
     db.commit()
