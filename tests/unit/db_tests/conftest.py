@@ -8,7 +8,7 @@ def setup_db():
     Base.metadata.create_all(bind = engine)
     yield
     # После теста удалить все таблицы
-    Base.metadata.drop_all(bind = engine)
+    # Base.metadata.drop_all(bind = engine)
 
 
 @pytest.fixture()   

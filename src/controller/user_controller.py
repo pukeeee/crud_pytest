@@ -1,123 +1,119 @@
 from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from src.component.user_repository import UserRepository
+from src.db.db_repository import DatabaseUserRepository
+from src.db.database import SessionLocal
 from src.dto.user import UserCreate, UserUpdate, PasswordUpdate
-from src.auth.auth import generate_token, get_current_user
+from src.auth.auth import get_current_user
+from src.service.user_service import UserService
+from src.service.exceptions import UserNotFoundError, EmailAlreadyExistsError, ForbiddenError, NothingToUpdateError, InternalError
 
 app = FastAPI()
 
-def get_user_repository():
-    return UserRepository()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-# Создание юзера
-@app.post("/users")
+def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
+    return DatabaseUserRepository(db)
+
+
+def get_user_service(repo: UserRepository = Depends(get_user_repository)) -> UserService:
+    return UserService(repo)
+
+
+@app.post("/users", status_code=201)
 def create_user(
     user: UserCreate, 
-    repo: UserRepository = Depends(get_user_repository)
+    service: UserService = Depends(get_user_service)
 ):
-    # Проверка на существующий email
-    existing_email = repo.get_user_by_email(user.email)
-    if existing_email:
-        raise HTTPException(status_code = 409, detail = "Email already exists")
-
-    user_data = repo.create_user(user.model_dump())
-    access_token = generate_token(user_data["id"])
-
-    user_data.pop("password", None)  # Удаление пароля из ответа
-
-    return {
-        **user_data,
-        "access_token": access_token
-    }
+    """Создает нового пользователя и возвращает его данные с токеном доступа."""
+    try:
+        user_data, access_token = service.create_user(user)
+        return {**user_data, "access_token": access_token}
+    except EmailAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 
 @app.get("/users/{id}")
 def get_user(
     id: int, 
     current_user_id: int = Depends(get_current_user), 
-    repo: UserRepository = Depends(get_user_repository)
+    service: UserService = Depends(get_user_service)
 ):
-    if id != current_user_id:
-        raise HTTPException(status_code = 403, detail = "Forbidden")
-
-    user = repo.get_user_by_id(id)
-    if not user:
-        raise HTTPException(status_code = 404, detail = "User not found")
-    
-    return {"user_name": user["user_name"], "email": user["email"]}
+    """Возвращает публичные данные пользователя по его ID."""
+    try:
+        user = service.get_user(id, current_user_id)
+        return user
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ForbiddenError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
 
 @app.patch("/users/{id}")
 def update_user(
     id: int,
-    user: UserUpdate,
+    user_update: UserUpdate,
     current_user_id: int = Depends(get_current_user),
-    repo: UserRepository = Depends(get_user_repository)
+    service: UserService = Depends(get_user_service)
 ):
-    if id != current_user_id:
-        raise HTTPException(status_code = 403, detail = "Forbidden")
-
-    existing_user = repo.get_user_by_id(id)
-    if not existing_user:
-        raise HTTPException(status_code = 404, detail = "User not found")
-    
-    # Проверка на существующий email
-    existing_email = repo.get_user_by_email(user.email)
-    if existing_email:
-        raise HTTPException(status_code = 409, detail = "Email already exists")
-
-    update_data = user.model_dump(exclude_unset = True)
-    if not update_data:
-        raise HTTPException(status_code = 400, detail = "No fields to update")
-
-    updated_fields = repo.update_user(id, update_data)
-    if not updated_fields:
-        raise HTTPException(status_code = 500, detail = "Failed to update user")
-
-    updated_fields.pop("password", None)
-
-    return {"message": "User updated", "user": updated_fields}
+    """Обновляет данные пользователя (имя, email)."""
+    try:
+        updated_user = service.update_user(id, current_user_id, user_update)
+        return {"message": "User updated", "user": updated_user}
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ForbiddenError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except EmailAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except NothingToUpdateError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except InternalError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.patch("/users/{id}/password")
 def update_password(
     id: int,
-    data: PasswordUpdate,
+    password_data: PasswordUpdate,
     current_user_id: int = Depends(get_current_user),
-    repo: UserRepository = Depends(get_user_repository)
+    service: UserService = Depends(get_user_service)
 ):
-    if id != current_user_id:
-        raise HTTPException(status_code = 403, detail = "Forbidden")
-
-    existing_user = repo.get_user_by_id(id)
-    if not existing_user:
-        raise HTTPException(status_code = 404, detail = "User not found")
-
-    update_data = data.password
-    if not update_data:
-        raise HTTPException(status_code = 400, detail = "No password provided")
-
-    updated_fields = repo.update_password(id, data.password)
-    if not updated_fields:
-        raise HTTPException(status_code = 500, detail = "Failed to update password")
-
-    return {"message": "Password updated successfully"}
+    """Обновляет пароль пользователя."""
+    try:
+        service.update_password(id, current_user_id, password_data)
+        return {"message": "Password updated successfully"}
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ForbiddenError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except NothingToUpdateError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except InternalError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.delete("/users/{id}")
 def delete_user(
     id: int,
     current_user_id: int = Depends(get_current_user),
-    repo: UserRepository = Depends(get_user_repository)
+    service: UserService = Depends(get_user_service)
 ):
-    if id != current_user_id:
-        raise HTTPException(status_code = 403, detail = "Forbidden")
-    
-    existing_user = repo.get_user_by_id(id)
-    if not existing_user:
-        raise HTTPException(status_code = 404, detail = "User not found")
-    
-    if not repo.delete_user(id):
-        raise HTTPException(status_code = 500, detail = "Failed to delete user")
-    
-    return {"message": "User deleted successfully"}
+    """Удаляет пользователя."""
+    try:
+        service.delete_user(id, current_user_id)
+        return {"message": "User deleted successfully"}
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ForbiddenError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except InternalError as e:
+        raise HTTPException(status_code=500, detail=str(e))

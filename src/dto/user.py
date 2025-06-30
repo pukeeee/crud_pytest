@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, EmailStr
 import re
 
 
@@ -57,7 +57,7 @@ class UserValidation(BaseModel):
 
 class UserCreate(UserValidation):
     user_name: str
-    email: str
+    email: EmailStr
     password: str
 
     @field_validator("user_name")
@@ -75,7 +75,7 @@ class UserCreate(UserValidation):
 
 class UserUpdate(UserValidation):
     user_name: str | None = None
-    email: str | None = None
+    email: EmailStr | None = None
 
     @field_validator("user_name")
     def validate_user_name_field(cls, value):

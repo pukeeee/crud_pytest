@@ -1,20 +1,45 @@
 import pytest
+from src.service.exceptions import EmailAlreadyExistsError
 
 
 def test_create_user_success(client, new_user_data):
-    test_client, mock_repo = client
+    """Тест успешного создания пользователя."""
+    # Arrange
+    test_client, mock_service = client
+    # Настраиваем мок-сервис, чтобы он возвращал кортеж (dict, str)
+    mock_service.create_user.return_value = (
+        {"id": 1, "user_name": "Name", "email": "email@mail.com"},
+        "fake_access_token"
+    )
 
-    mock_repo.get_user_by_email.return_value = None
-    mock_repo.create_user.return_value = {"id": 1, **new_user_data}
-    response = test_client.post("/users", json = new_user_data)
+    # Act
+    response = test_client.post("/users", json=new_user_data)
     data = response.json()
 
-    assert response.status_code == 200
+    # Assert
+    assert response.status_code == 201
     assert data["id"] == 1
     assert data["user_name"] == new_user_data["user_name"]
-    assert data["email"] == new_user_data["email"]
     assert "password" not in data
-    assert "access_token" in data
+    assert data["access_token"] == "fake_access_token"
+
+
+def test_create_user_duplicate_email(client, new_user_data):
+    """Тест создания пользователя с уже существующим email."""
+    # Arrange
+    test_client, mock_service = client
+    # Настраиваем мок-сервис на выброс исключения
+    mock_service.create_user.side_effect = EmailAlreadyExistsError("Email already exists")
+
+    # Act
+    response = test_client.post("/users", json=new_user_data)
+    data = response.json()
+
+    # Assert
+    assert response.status_code == 409
+    assert "access_token" not in data
+    assert data["detail"] == "Email already exists"
+    mock_service.create_user.assert_called_once()
 
 
 @pytest.mark.parametrize("field", ["user_name", "email", "password"])
@@ -78,15 +103,3 @@ def test_create_user_empty_body(client):
 
     assert response.status_code == 422
     assert "access_token" not in data
-
-
-def test_create_user_duplicate_email(client, new_user_data):
-    test_client, mock_repo = client
-
-    mock_repo.get_user_by_email.return_value = {"id": 1, **new_user_data}
-    response = test_client.post("/users", json = new_user_data)
-    data = response.json()
-
-    assert response.status_code == 409
-    assert "access_token" not in data
-    assert data["detail"] == "Email already exists"

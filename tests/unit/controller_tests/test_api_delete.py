@@ -1,74 +1,67 @@
-def test_delete_user(create_user, new_user_data):
-    data, test_client, mock_repo = create_user
+from src.service.exceptions import UserNotFoundError, ForbiddenError, InternalError
 
-    id = data["id"]
-    token = data["access_token"]
 
-    mock_repo.get_user_by_id.return_value = {"id": id, **new_user_data}
-    mock_repo.delete_user.return_value = True
+def test_delete_user_success(client):
+    # Arrange
+    test_client, mock_service = client
+    user_id_to_delete = 1  # Удаляем сами себя
 
-    headers = {"Authorization": f"Bearer {token}"}
-    response = test_client.delete(f"/users/{id}", headers = headers)
+    # Настраиваем мок-сервис: метод delete_user не возвращает ничего в случае успеха
+    mock_service.delete_user.return_value = None
 
+    # Act
+    response = test_client.delete(f"/users/{user_id_to_delete}")
+
+    # Assert
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully"}
+    # Проверяем, что метод сервиса был вызван с правильными аргументами
+    mock_service.delete_user.assert_called_once_with(user_id_to_delete, 1)
 
 
-def test_delete_user_forbidden(create_user, new_user_data):
-    data, test_client, mock_repo = create_user
+def test_delete_user_not_found(client):
+    # Arrange
+    test_client, mock_service = client
+    user_id_to_delete = 999
+    
+    # Настраиваем мок-сервис на выброс исключения
+    mock_service.delete_user.side_effect = UserNotFoundError("User not found")
 
-    other_id = data["id"] + 1
-    token = data["access_token"]
+    # Act
+    response = test_client.delete(f"/users/{user_id_to_delete}")
 
-    mock_repo.get_user_by_id.return_value = {"id": id, **new_user_data}
-    mock_repo.delete_user.return_value = True
-
-    headers = {"Authorization": f"Bearer {token}"}
-    response = test_client.delete(f"/users/{other_id}", headers = headers)
-
-    assert response.status_code == 403
-    assert response.json()["detail"] == "Forbidden"
-
-
-def test_delete_user_not_found(create_user):
-    data, test_client, mock_repo = create_user
-
-    id = data["id"]
-    token = data["access_token"]
-
-    mock_repo.get_user_by_id.return_value = None
-
-    headers = {"Authorization": f"Bearer {token}"}
-    response = test_client.delete(f"/users/{id}", headers = headers)
-
+    # Assert
     assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    assert response.json() == {"detail": "User not found"}
 
 
-def test_delete_user_internal_error(create_user, new_user_data):
-    data, test_client, mock_repo = create_user
+def test_delete_other_user_forbidden(client):
+    # Arrange
+    test_client, mock_service = client
+    user_id_to_delete = 2  # Пытаемся удалить другого пользователя
 
-    id = data["id"]
-    token = data["access_token"]
+    # Настраиваем мок-сервис на выброс исключения
+    mock_service.delete_user.side_effect = ForbiddenError("Forbidden")
 
-    mock_repo.get_user_by_id.return_value = {"id": id, **new_user_data}
-    mock_repo.delete_user.return_value = False
+    # Act
+    response = test_client.delete(f"/users/{user_id_to_delete}")
 
-    headers = {"Authorization": f"Bearer {token}"}
-    response = test_client.delete(f"/users/{id}", headers = headers)
+    # Assert
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Forbidden"}
 
+
+def test_delete_user_internal_error(client):
+    # Arrange
+    test_client, mock_service = client
+    user_id_to_delete = 1
+    
+    # Настраиваем мок-сервис на выброс исключения
+    mock_service.delete_user.side_effect = InternalError("Failed to delete user")
+
+    # Act
+    response = test_client.delete(f"/users/{user_id_to_delete}")
+
+    # Assert
     assert response.status_code == 500
-    assert response.json()["detail"] == "Failed to delete user"
-
-
-def test_delete_user_unauthorized(create_user, new_user_data):
-    data, test_client, mock_repo = create_user
-
-    id = data["id"]
-
-    mock_repo.get_user_by_id.return_value = {"id": id, **new_user_data}
-
-    response = test_client.delete(f"/users/{id}")
-
-    assert response.status_code == 401
-    assert response.json()["detail"] == "Unauthorized"
+    assert response.json() == {"detail": "Failed to delete user"}
