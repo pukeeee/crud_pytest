@@ -1,29 +1,38 @@
-from fastapi.testclient import TestClient
-from controller.user_controller import app, get_user_repository
-from unittest.mock import MagicMock
 import pytest
+from unittest.mock import MagicMock
+from fastapi.testclient import TestClient
+from src.controller.user_controller import app, get_user_service, get_current_user
+from src.service.user_service import UserService
+
+
+USER_ID = 1  # Константа для ID текущего пользователя во всех тестах
 
 
 @pytest.fixture
-def client():
-    # Создание мок-репозитория для подмены реального слоя данных
-    mock_repo = MagicMock()
-    # Переопределение зависимости FastAPI на мок-репозиторий
-    app.dependency_overrides[get_user_repository] = lambda: mock_repo
-
-    return TestClient(app), mock_repo
+def mock_user_service():
+    """Создает мок для UserService c правильной спецификацией."""
+    return MagicMock(spec = UserService)
 
 
 @pytest.fixture
-def updated_user_data():
-    return {
-        "user_name": "NewName", 
-        "email": "newemail@mail.com"
-    }
+def client(mock_user_service):
+    """
+    Создает тестовый клиент, подменяя реальный сервис и аутентификацию
+    на моки для полной изоляции контроллера.
+    """
+    app.dependency_overrides[get_user_service] = lambda: mock_user_service
+    app.dependency_overrides[get_current_user] = lambda: USER_ID
+
+    with TestClient(app) as test_client:
+        yield test_client, mock_user_service
+    
+    # Очищаем подмены после теста, чтобы не влиять на другие тесты
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def new_user_data():
+    """Тестовые данные для создания пользователя."""
     return {
         "user_name": "Name", 
         "email": "email@mail.com", 
@@ -32,17 +41,9 @@ def new_user_data():
 
 
 @pytest.fixture
-def create_user(client, new_user_data):
-    """Создаёт пользователя и возвращает (response.json, client, mock_repo)"""
-    test_client, mock_repo = client
-
-    # Мокаем создание пользователя
-    mock_repo.get_user_by_email.return_value = None
-    mock_repo.create_user.return_value = {"id": 1, **new_user_data}
-
-    create_response = test_client.post("/users", json = new_user_data)
-    assert create_response.status_code == 200
-
-    data = create_response.json()
-
-    return data, test_client, mock_repo
+def updated_user_data():
+    """Тестовые данные для обновления пользователя."""
+    return {
+        "user_name": "NewName", 
+        "email": "newemail@mail.com"
+    }
