@@ -12,7 +12,7 @@ def test_create_user(db_session, user_data):
     assert user_dict["id"] is not None
     assert user_dict["user_name"] == user_data["user_name"]
     assert user_dict["email"] == user_data["email"]
-    assert "password" not in user_dict # Убеждаемся, что пароль не возвращается
+    assert "password" not in user_dict
 
     # Проверяем, что пользователь реально в базе
     user_from_db = db_session.query(User).filter_by(email=user_data["email"]).first()

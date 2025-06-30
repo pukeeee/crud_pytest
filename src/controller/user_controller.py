@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from src.component.user_repository import UserRepository
 from src.db.db_repository import DatabaseUserRepository
 from src.db.database import SessionLocal

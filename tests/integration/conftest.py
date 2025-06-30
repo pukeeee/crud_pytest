@@ -1,5 +1,7 @@
 import pytest
 from src.db.database import engine, Base, SessionLocal
+from src.controller.user_controller import app
+from fastapi.testclient import TestClient
 import os
 
 
@@ -17,6 +19,11 @@ def db_session():
         yield db
     finally:
         db.close()
+
+
+@pytest.fixture
+def client():
+    return TestClient(app)
 
 
 @pytest.fixture()
