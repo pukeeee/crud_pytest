@@ -1,8 +1,10 @@
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from src.component.user_repository import UserRepository
 from src.db.models import User
 from src.dto.user_response import UserResponse
+from src.service.exceptions import EmailAlreadyExistsError
 
 
 def to_dict(user: User) -> dict:
@@ -18,9 +20,13 @@ class DatabaseUserRepository(UserRepository):
     def create_user(self, user_data: dict) -> dict:
         user = User(**user_data)
         self.db.add(user)
-        self.db.commit()
-        self.db.refresh(user)
-        return to_dict(user)
+        try:
+            self.db.commit()
+            self.db.refresh(user)
+            return to_dict(user)
+        except IntegrityError as e:
+            self.db.rollback()
+            raise EmailAlreadyExistsError("Email already exists") from e
 
 
     def get_user_by_email(self, email: str) -> dict | None:

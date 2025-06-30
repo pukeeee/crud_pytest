@@ -8,7 +8,7 @@ def setup_db():
     Base.metadata.create_all(bind = engine)
     yield
     # После теста удалить все таблицы
-    # Base.metadata.drop_all(bind = engine)
+    Base.metadata.drop_all(bind = engine)
 
 
 @pytest.fixture()   
@@ -26,6 +26,5 @@ def user_data():
         "user_name": "TestUser",
         "email": "testuser@mail.com",
         "password": "Password123/",
-        "start_date": 20240628,
         "status": True
     }

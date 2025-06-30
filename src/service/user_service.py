@@ -3,6 +3,7 @@ from src.dto.user import UserCreate, UserUpdate, PasswordUpdate
 from src.auth.auth import generate_token
 from src.auth.hash import hash_password
 from src.service.exceptions import UserNotFoundError, EmailAlreadyExistsError, ForbiddenError, NothingToUpdateError, InternalError
+from src.service.time_service import TimeService
 
 
 class UserService:
@@ -16,6 +17,7 @@ class UserService:
         
         user_dict = user_data.model_dump()
         user_dict["password"] = hash_password(user_dict["password"])
+        user_dict["start_date"] = TimeService.now_unix()
         
         created_user = self.repo.create_user(user_dict)
         access_token = generate_token(created_user["id"])
