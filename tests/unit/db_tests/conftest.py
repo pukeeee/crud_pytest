@@ -1,6 +1,5 @@
 import pytest
 from src.db.database import engine, Base, SessionLocal
-import os
 
 
 @pytest.fixture(scope="function", autouse=True)

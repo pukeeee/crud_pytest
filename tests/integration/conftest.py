@@ -2,7 +2,6 @@ import pytest
 from src.db.database import engine, Base, SessionLocal
 from src.controller.user_controller import app
 from fastapi.testclient import TestClient
-import os
 
 
 @pytest.fixture(scope="function", autouse=True)
