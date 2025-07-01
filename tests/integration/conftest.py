@@ -4,9 +4,9 @@ from src.controller.user_controller import app
 from fastapi.testclient import TestClient
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(autouse = True)
 def setup_db():
-    Base.metadata.create_all(bind = engine, checkfirst=True)
+    Base.metadata.create_all(bind = engine, checkfirst = True)
     yield
     Base.metadata.drop_all(bind = engine)
 
@@ -31,5 +31,4 @@ def user_data():
         "user_name": "TestUser",
         "email": "testuser@mail.com",
         "password": "Password123/",
-        "status": True
     }

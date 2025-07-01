@@ -4,7 +4,7 @@ from src.db.database import engine, Base, SessionLocal
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_db():
-    Base.metadata.create_all(bind = engine, checkfirst=True)
+    Base.metadata.create_all(bind = engine, checkfirst = True)
     yield
     Base.metadata.drop_all(bind = engine)
 
@@ -24,5 +24,4 @@ def user_data():
         "user_name": "TestUser",
         "email": "testuser@mail.com",
         "password": "Password123/",
-        "status": True
     }

@@ -36,8 +36,9 @@ def create_user(
     try:
         user_data, access_token = service.create_user(user)
         return {**user_data, "access_token": access_token}
+    
     except EmailAlreadyExistsError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code = 409, detail = str(e))
 
 
 @app.get("/users/{id}")
@@ -50,10 +51,11 @@ def get_user(
     try:
         user = service.get_user(id, current_user_id)
         return user
+    
     except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code = 404, detail = str(e))
     except ForbiddenError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code = 403, detail = str(e))
 
 
 @app.patch("/users/{id}")
@@ -67,16 +69,17 @@ def update_user(
     try:
         updated_user = service.update_user(id, current_user_id, user_update)
         return {"message": "User updated", "user": updated_user}
+    
     except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code = 404, detail = str(e))
     except ForbiddenError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code = 403, detail = str(e))
     except EmailAlreadyExistsError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code = 409, detail = str(e))
     except NothingToUpdateError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code = 400, detail = str(e))
     except InternalError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code = 500, detail = str(e))
 
 
 @app.patch("/users/{id}/password")
@@ -91,13 +94,13 @@ def update_password(
         service.update_password(id, current_user_id, password_data)
         return {"message": "Password updated successfully"}
     except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code = 404, detail = str(e))
     except ForbiddenError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code = 403, detail = str(e))
     except NothingToUpdateError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code = 400, detail = str(e))
     except InternalError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code = 500, detail = str(e))
 
 
 @app.delete("/users/{id}")
@@ -111,8 +114,8 @@ def delete_user(
         service.delete_user(id, current_user_id)
         return {"message": "User deleted successfully"}
     except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code = 404, detail = str(e))
     except ForbiddenError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code = 403, detail = str(e))
     except InternalError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code = 500, detail = str(e))
