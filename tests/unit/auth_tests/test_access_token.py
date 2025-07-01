@@ -24,7 +24,7 @@ def test_generate_token_different_user_ids(user_id):
 
 
 def test_token_invalid_user_id():
-    token = generate_token("invalid_user_id")
+    token = generate_token("invalid_user_id") # type: ignore
 
     with pytest.raises(ValueError, match = "Invalid token"):
         verify_token(token)
@@ -57,7 +57,7 @@ def test_token_expiry_is_correct():
     token = generate_token(user_id)
     
     after = datetime.now(timezone.utc)
-    payload = jwt.decode(token, SECRET_KEY, algorithms = [ALGORITHM])
+    payload = jwt.decode(token, SECRET_KEY, algorithms = [ALGORITHM]) # type: ignore
     exp = datetime.fromtimestamp(payload["exp"], timezone.utc)
 
     # Нижняя и верхняя границы допустимого срока действия
@@ -75,7 +75,7 @@ def test_expired_token():
         "exp": expired_time
     }
 
-    expired_token = jwt.encode(payload, SECRET_KEY, algorithm = ALGORITHM)
+    expired_token = jwt.encode(payload, SECRET_KEY, algorithm = ALGORITHM) # type: ignore
 
     with pytest.raises(ValueError, match = "Token has expired"):
         verify_token(expired_token)

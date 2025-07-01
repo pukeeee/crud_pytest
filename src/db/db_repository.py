@@ -23,7 +23,9 @@ class DatabaseUserRepository(UserRepository):
         try:
             self.db.commit()
             self.db.refresh(user)
+            
             return to_dict(user)
+        
         except IntegrityError as e:
             self.db.rollback()
             raise EmailAlreadyExistsError("Email already exists") from e
@@ -32,11 +34,13 @@ class DatabaseUserRepository(UserRepository):
     def get_user_by_email(self, email: str) -> dict | None:
         statement = select(User).where(User.email == email)
         user = self.db.execute(statement).scalar_one_or_none()
+        
         return to_dict(user) if user else None
 
 
     def get_user_by_id(self, id: int) -> dict | None:
         user = self.db.get(User, id)
+        
         return to_dict(user) if user else None
 
 
@@ -52,9 +56,10 @@ class DatabaseUserRepository(UserRepository):
 
 
     def update_password(self, id: int, password: str) -> dict | None:
-        statement = update(User).where(User.id == id).values(password=password).returning(User)
+        statement = update(User).where(User.id == id).values(password = password).returning(User)
         result = self.db.execute(statement).scalar_one_or_none()
         self.db.commit()
+        
         return to_dict(result) if result else None
 
 
@@ -63,5 +68,6 @@ class DatabaseUserRepository(UserRepository):
         if user:
             self.db.delete(user)
             self.db.commit()
+            
             return True
         return False

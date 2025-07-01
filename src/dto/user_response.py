@@ -7,4 +7,4 @@ class UserResponse(BaseModel):
     start_date: int
     status: bool
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes = True)

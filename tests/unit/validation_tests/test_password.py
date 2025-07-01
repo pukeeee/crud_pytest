@@ -23,9 +23,9 @@ from pydantic import ValidationError
         ("Valid Password1/", pytest.raises(ValidationError, match = "Password cannot contain spaces")),
         ("!!!!!!!!!!", pytest.raises(ValidationError, match = "Password must contain at least one uppercase letter")),
         ("validpassword/", pytest.raises(ValidationError, match = "Password must contain at least one uppercase letter")),
-        ("ValidPassword1?", pytest.raises(ValidationError, match="Password must contain at least one special character")),
+        ("ValidPassword1?", pytest.raises(ValidationError, match = "Password must contain at least one special character")),
         ("ValidПароль1/", not_raises()),
-        ("ValidPassword1\n", pytest.raises(ValidationError, match="Password must contain at least one special character")),
+        ("ValidPassword1\n", pytest.raises(ValidationError, match = "Password must contain at least one special character")),
     ]
 )
 def test_password_validation(password, exp):
