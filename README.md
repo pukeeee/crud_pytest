@@ -7,7 +7,7 @@ The project is designed both as a practical backend solution and as a portfolio 
 ---
 
 ## 🗂️ Project Structure
-
+```
 crudPytest/
 │
 ├── src/
@@ -27,7 +27,7 @@ crudPytest/
 ├── requirements.txt
 ├── pytest.ini
 └── README.md
-
+```
 ---
 
 ## 🧩 Main Logic
