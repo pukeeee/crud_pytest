@@ -2,7 +2,6 @@
 
 This repository contains a modern backend service for user management, built with **FastAPI**, **SQLAlchemy**, and **PostgreSQL**.  
 It demonstrates clean architecture, robust validation, JWT authentication, and a full suite of unit and integration tests.  
-The project is designed both as a practical backend solution and as a portfolio example for employers and recruiters.
 
 ---
 
