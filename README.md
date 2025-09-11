@@ -59,6 +59,19 @@ crudPytest/
 
 ---
 
+## 🔄 CI/CD
+
+This project uses [GitHub Actions](.github/workflows/ci-cd.yml) for its Continuous Integration pipeline.
+
+The workflow automatically triggers on every `push` or `pull_request` to the `master` branch and performs the following steps:
+- **Sets up a Python environment.**
+- **Installs all dependencies.**
+- **Runs the complete test suite** (unit and integration tests) against a fresh PostgreSQL database.
+- **Sends Telegram notifications** on test failure or successful pull request merges.
+- **Automatically merges pull requests** tagged with `automerge` if all tests pass.
+
+---
+
 ## 🐳 Running with Docker Compose
 
 **Requirements:**
