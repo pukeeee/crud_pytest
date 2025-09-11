@@ -8,7 +8,7 @@ from src.service.exceptions import EmailAlreadyExistsError
 
 
 def to_dict(user: User) -> dict:
-    """Преобразует объект User в словарь, соответствующий UserResponse."""
+    """Перетворює об'єкт User на словник, що відповідає UserResponse."""
     return UserResponse.model_validate(user).model_dump()
 
 

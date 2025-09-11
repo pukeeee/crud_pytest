@@ -14,7 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
 def generate_token(user_id: int) -> str:
-    """Создание JWT-токена"""
+    """Створення JWT-токену"""
     expire = datetime.now(timezone.utc) + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
         "sub": str(user_id),
@@ -26,7 +26,7 @@ def generate_token(user_id: int) -> str:
 
 
 def verify_token(token: str) -> int:
-    """Проверка JWT-токена и извлечение user_id"""
+    """Перевірка JWT-токену та вилучення user_id"""
     if not isinstance(token, str) or not token.strip():
         raise ValueError("Invalid token format")
 
@@ -43,7 +43,7 @@ def verify_token(token: str) -> int:
 
 
 def get_current_user(authorization: Annotated[str | None, Header()] = None) -> int:
-    """Извлекает user_id из токена в заголовке Authorization"""
+    """Витягує user_id з токена в заголовку Authorization"""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code = 401, detail = "Unauthorized")
     

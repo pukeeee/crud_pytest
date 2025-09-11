@@ -17,7 +17,7 @@ jobs:
     # Вказуємо, що задача має виконуватись на віртуальній машині з Ubuntu
     runs-on: ubuntu-latest
     # Назва середовища, з якого будуть братись секрети
-    environment: ci
+    environment: ci/cd
 
     services:
       # Запускаємо контейнер з PostgreSQL для тестів

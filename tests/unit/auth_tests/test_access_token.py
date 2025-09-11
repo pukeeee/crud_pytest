@@ -60,7 +60,7 @@ def test_token_expiry_is_correct():
     payload = jwt.decode(token, SECRET_KEY, algorithms = [ALGORITHM]) # type: ignore
     exp = datetime.fromtimestamp(payload["exp"], timezone.utc)
 
-    # Нижняя и верхняя границы допустимого срока действия
+    # Нижня та верхня межі допустимого терміну дії
     min_expected_exp = before + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTES) - timedelta(seconds = 5)
     max_expected_exp = after + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTES) + timedelta(seconds = 5)
 

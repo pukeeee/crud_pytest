@@ -32,7 +32,7 @@ def create_user(
     user: UserCreate, 
     service: UserService = Depends(get_user_service)
 ):
-    """Создает нового пользователя и возвращает его данные с токеном доступа."""
+    """Створює нового користувача та повертає його дані з токеном доступу."""
     try:
         user_data, access_token = service.create_user(user)
         return {**user_data, "access_token": access_token}
@@ -47,7 +47,7 @@ def get_user(
     current_user_id: int = Depends(get_current_user), 
     service: UserService = Depends(get_user_service)
 ):
-    """Возвращает публичные данные пользователя по его ID."""
+    """Повертає публічні дані користувача за його ID."""
     try:
         user = service.get_user(id, current_user_id)
         return user
@@ -65,7 +65,7 @@ def update_user(
     current_user_id: int = Depends(get_current_user),
     service: UserService = Depends(get_user_service)
 ):
-    """Обновляет данные пользователя (имя, email)."""
+    """Оновлює дані користувача (ім'я, email)."""
     try:
         updated_user = service.update_user(id, current_user_id, user_update)
         return {"message": "User updated", "user": updated_user}
@@ -89,7 +89,7 @@ def update_password(
     current_user_id: int = Depends(get_current_user),
     service: UserService = Depends(get_user_service)
 ):
-    """Обновляет пароль пользователя."""
+    """Оновлює пароль користувача."""
     try:
         service.update_password(id, current_user_id, password_data)
         return {"message": "Password updated successfully"}
@@ -109,7 +109,7 @@ def delete_user(
     current_user_id: int = Depends(get_current_user),
     service: UserService = Depends(get_user_service)
 ):
-    """Удаляет пользователя."""
+    """Видаляє користувача."""
     try:
         service.delete_user(id, current_user_id)
         return {"message": "User deleted successfully"}

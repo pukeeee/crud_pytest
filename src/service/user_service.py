@@ -40,11 +40,11 @@ class UserService:
         if user_id != current_user_id:
             raise ForbiddenError("Forbidden")
 
-        # Проверяем, существует ли пользователь, которого пытаемся обновить
+        # Перевіряємо, чи існує користувач, якого намагаємося оновити
         if not self.repo.get_user_by_id(user_id):
             raise UserNotFoundError("User not found")
 
-        # Проверяем, не занят ли новый email другим пользователем
+        # Перевіряємо, чи не зайнятий новий email іншим користувачем
         if update_data.email:
             existing_email_user = self.repo.get_user_by_email(update_data.email)
             if existing_email_user and existing_email_user.get("id") != user_id:
@@ -56,7 +56,7 @@ class UserService:
 
         updated_user = self.repo.update_user(user_id, user_dict)
         if not updated_user:
-            # Это может произойти если, например, id не был найден в момент самого апдейта
+            # Це може статися, якщо, наприклад, id не було знайдено в момент самого оновлення
             raise InternalError("Failed to update user")
         
         updated_user.pop("password", None)
