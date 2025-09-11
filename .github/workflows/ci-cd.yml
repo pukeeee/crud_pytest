@@ -1,0 +1,127 @@
+# Назва нашого процесу, яка буде відображатись у GitHub
+name: CI/CD Pipeline
+
+# Тригери: коли запускати цей процес
+on:
+  # Запускати на кожен push в гілку master
+  push:
+    branches: ["master"]
+  # Запускати при створенні або оновлення pull request на гілку master
+  pull_request:
+    branches: ["master"]
+
+# Задачі, які потрібно виконати
+jobs:
+  # --- Завдання для тестів ---
+  test:
+    # Вказуємо, що задача має виконуватись на віртуальній машині з Ubuntu
+    runs-on: ubuntu-latest
+    # Назва середовища, з якого будуть братись секрети
+    environment: ci
+
+    services:
+      # Запускаємо контейнер з PostgreSQL для тестів
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        # Перевірка готовності бази даних
+        options: >-
+          --health-cmd "pg_isready -U test_user -d test_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # Кроки, які будуть виконані послідовно
+    steps:
+      # Крок 1: Клонування коду з репозиторію
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Крок 2: Налаштування середовища Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # Крок 3: Встановлення залежностей
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Крок 4: Запуск тестів
+      - name: Run Tests
+        run: pytest --tb=short --disable-warnings
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALGORITHM: "HS256"
+          ACCESS_TOKEN_EXPIRE_MINUTES: 30
+
+      # Крок 5: Сповіщення про помилку (для PR)
+      - name: Send Telegram message on failure test (Pull Request)
+        if: failure() && github.event_name == 'pull_request'
+        run: |
+          MESSAGE="❌ *Тести провалено!*%0A%0APR: *#${{ github.event.pull_request.number }}*%0AРепозиторій: *${{ github.repository }}*%0A%0A[Перейти до логів](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="$MESSAGE" \
+            -d parse_mode="Markdown"
+
+      # Крок 6: Сповіщення про помилку (для коммітів в master)
+      - name: Send Telegram message on failure test (Push to master)
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          MESSAGE="❌ *Тести на гілці 'master' провалено!*%0A%0AРепозиторій: *${{ github.repository }}*%0AКомміт:
+          $SHORT_SHA
+          %0A%0A[Перейти до логів](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="$MESSAGE" \
+            -d parse_mode="Markdown"
+
+  # --- Завдання для Автомерджу ---
+  automerge:
+    name: Automerge
+    # Залежність: ця задача запуститься тільки після успішного завершення задачі 'test'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    # Умова: запускати тільки для PR з міткою 'automerge', що не є чернеткою
+    if: |
+      github.event_name == 'pull_request' &&
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.draft == false &&
+      contains(github.event.pull_request.labels.*.name, 'automerge')
+    steps:
+      # Крок 1: Автоматичне злиття Pull Request
+      - name: Merge PR
+        uses: pascalgn/automerge-action@v0.16.3
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_METHOD: "squash"
+
+      # Крок 2: Сповіщення про успішний автомердж
+      - name: Send Telegram message on success (Pull Request)
+        if: success() && github.event_name == 'pull_request'
+        run: |
+          MESSAGE="✅ *Успішно змерджено!*%0A%0APR: *#${{ github.event.pull_request.number }}*%0A%0A[Перейти до PR](${{ github.event.pull_request.html_url }})"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="$MESSAGE" \
+            -d parse_mode="Markdown"
